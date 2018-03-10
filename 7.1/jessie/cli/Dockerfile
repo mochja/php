@@ -17,7 +17,7 @@ RUN set -eux; \
 
 # persistent / runtime deps
 ENV PHPIZE_DEPS \
-		autoconf \
+		autoconf automake \
 		dpkg-dev \
 		file \
 		g++ \
@@ -55,6 +55,8 @@ ENV PHP_VERSION 7.1.15
 ENV PHP_URL="https://secure.php.net/get/php-7.1.15.tar.xz/from/this/mirror" PHP_ASC_URL="https://secure.php.net/get/php-7.1.15.tar.xz.asc/from/this/mirror"
 ENV PHP_SHA256="0e17192fb43532e4ebaa190ecec9c7e59deea7dadb7dab67b19c2081a68bd817" PHP_MD5=""
 
+ENV FPMI_URL https://github.com/bukka/fpmi/archive/next.tar.gz
+
 RUN set -xe; \
 	\
 	fetchDeps=' \
@@ -74,6 +76,7 @@ RUN set -xe; \
 	cd /usr/src; \
 	\
 	wget -O php.tar.xz "$PHP_URL"; \
+	wget -O fpmi.tar.gz "$FPMI_URL"; \
 	\
 	if [ -n "$PHP_SHA256" ]; then \
 		echo "$PHP_SHA256 *php.tar.xz" | sha256sum -c -; \
@@ -124,6 +127,8 @@ RUN set -eux; \
 	if [ ! -d /usr/include/curl ]; then \
 		ln -sT "/usr/include/$debMultiarch/curl" /usr/local/include/curl; \
 	fi; \
+	mkdir -p sapi/fpmi; tar -xf ../fpmi.tar.gz -C sapi/fpmi --strip-component=1; \
+	./buildconf --force; \
 	./configure \
 		--build="$gnuArch" \
 		--with-config-file-path="$PHP_INI_DIR" \
